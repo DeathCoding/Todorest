@@ -1,5 +1,6 @@
 package com.todorest.Todorest.service;
 
+import com.todorest.Todorest.model.Item;
 import com.todorest.Todorest.model.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
@@ -32,10 +33,12 @@ public class DataService {
             e.printStackTrace();
         }
 
-        jdbcTemplate.execute("DROP TABLE IF EXISTS users;");
-        jdbcTemplate.execute("CREATE TABLE users (name VARCHAR(20), pw text, email text)");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS users (name VARCHAR(20), pw text, email text)");
+        jdbcTemplate.execute("CREATE TABLE IF NOT EXISTS list (name VARCHAR(20), item text)");
     }
 
+
+    // Methods for login and register
     public int register(User user) {
         String sql = "INSERT INTO users (name, email, pw)" +
                 "VALUES (" + "'" + user.getUsername() + "'" + ", " + "'" + user.getEmail() + "'" + ", " + "'" + user.getPassword() + "'" + ")";
@@ -72,4 +75,27 @@ public class DataService {
             return result.get(0);
         }
     }
+
+    // Methods for adding to todolist, removing and loading
+    public int addItem(Item item) {
+        String sql = "INSERT INTO list (name, item) VALUES (" + "'" + item.getName() + "'" + ", " + "'" + item.getItem() + "'" + ")";
+
+        jdbcTemplate.execute(sql);
+        return 1;
+    }
+
+    public int removeItem(Item item) {
+       String sql = "DELETE FROM list WHERE (name = " + "'" + item.getName() + "' && item = " + "'" + item.getItem() + "')";
+
+       jdbcTemplate.execute(sql);
+       return 1;
+    }
+
+    public List<String> getTodoList(String name) {
+        String sql = "SELECT list.item FROM users, list WHERE (users.name = list.name) && (users.name = " + "'" + name + "'" + ");";
+
+        List<String> todolist = jdbcTemplate.queryForList(sql, String.class);
+        return todolist;
+    }
+
 }
